@@ -241,14 +241,6 @@ export interface EventUserAuthenticated extends HookEventBase {
   };
 }
 
-export interface EventUserSignedOut extends HookEventBase {
-  type: "user.signed_out";
-  payload: {
-    user: User;
-    session: Session;
-  };
-}
-
 export interface EventUserAnonymousPromoted extends HookEventBase {
   type: "user.anonymous.promoted";
   payload: {
@@ -288,93 +280,6 @@ export interface EventUserDeletionUnscheduled extends HookEventBase {
 
 export interface EventUserDeleted extends HookEventBase {
   type: "user.deleted";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationIdentityLoginIDFailed
-  extends HookEventBase {
-  type: "authentication.identity.login_id.failed";
-  payload: {
-    login_id: string;
-  };
-}
-
-export interface EventAuthenticationIdentityAnonymousFailed
-  extends HookEventBase {
-  type: "authentication.identity.anonymous.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationIdentityBiometricFailed
-  extends HookEventBase {
-  type: "authentication.identity.biometric.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationPrimaryPasswordFailed
-  extends HookEventBase {
-  type: "authentication.primary.password.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationPrimaryOOBOTPEmailFailed
-  extends HookEventBase {
-  type: "authentication.primary.oob_otp_email.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationPrimaryOOBOTPSMSFailed
-  extends HookEventBase {
-  type: "authentication.primary.oob_otp_sms.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationSecondaryPasswordFailed
-  extends HookEventBase {
-  type: "authentication.secondary.password.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationSecondaryTOTPFailed extends HookEventBase {
-  type: "authentication.secondary.totp.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationSecondaryOOBOTPEmailFailed
-  extends HookEventBase {
-  type: "authentication.secondary.oob_otp_email.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationSecondaryOOBOTPSMSFailed
-  extends HookEventBase {
-  type: "authentication.secondary.oob_otp_sms.failed";
-  payload: {
-    user: User;
-  };
-}
-
-export interface EventAuthenticationSecondaryRecoveryCodeFailed
-  extends HookEventBase {
-  type: "authentication.secondary.recovery_code.failed";
   payload: {
     user: User;
   };
@@ -478,24 +383,12 @@ export type HookEvent =
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
-  | EventUserSignedOut
   | EventUserAnonymousPromoted
   | EventUserDisabled
   | EventUserReenabled
   | EventUserDeletionScheduled
   | EventUserDeletionUnscheduled
   | EventUserDeleted
-  | EventAuthenticationIdentityLoginIDFailed
-  | EventAuthenticationIdentityAnonymousFailed
-  | EventAuthenticationIdentityBiometricFailed
-  | EventAuthenticationPrimaryPasswordFailed
-  | EventAuthenticationPrimaryOOBOTPEmailFailed
-  | EventAuthenticationPrimaryOOBOTPSMSFailed
-  | EventAuthenticationSecondaryPasswordFailed
-  | EventAuthenticationSecondaryTOTPFailed
-  | EventAuthenticationSecondaryOOBOTPEmailFailed
-  | EventAuthenticationSecondaryOOBOTPSMSFailed
-  | EventAuthenticationSecondaryRecoveryCodeFailed
   | EventIdentityEmailAdded
   | EventIdentityEmailRemoved
   | EventIdentityEmailUpdated
