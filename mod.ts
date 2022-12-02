@@ -8,7 +8,7 @@ export interface HookResponseDisallowed {
 
 export interface HookResponseAllowed {
   is_allowed: true;
-  mutations: Mutations;
+  mutations?: Mutations;
 }
 
 export interface Mutations {
@@ -16,8 +16,8 @@ export interface Mutations {
 }
 
 export interface UserMutations {
-  standard_attributes: UserMutationsStandardAttributes;
-  custom_attributes: UserMutationsCustomAttributes;
+  standard_attributes?: UserMutationsStandardAttributes;
+  custom_attributes?: UserMutationsCustomAttributes;
 }
 
 export type UserMutationsCustomAttributes = Record<string, unknown>;
