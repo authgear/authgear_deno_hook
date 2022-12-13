@@ -11,9 +11,21 @@ export interface HookResponseAllowed {
   mutations?: Mutations;
 }
 
-export interface Mutations {
+export type Mutations = MutationsOnUser | MutationsOnJWT;
+
+export interface MutationsOnUser {
   user: UserMutations;
 }
+
+export interface MutationsOnJWT {
+  jwt: JWTMutations;
+}
+
+export interface JWTMutations {
+  payload: JWTPayloadMutations;
+}
+
+export type JWTPayloadMutations = Record<string, unknown>;
 
 export interface UserMutations {
   standard_attributes?: UserMutationsStandardAttributes;
@@ -94,6 +106,12 @@ export interface EntityBase {
   // RFC3339
   updated_at: string;
 }
+
+export interface JWT {
+  payload: JWTPayload;
+}
+
+export type JWTPayload = Record<string, unknown>;
 
 export interface User extends EntityBase {
   // RFC3339
@@ -215,6 +233,14 @@ export interface EventUserPreScheduleDeletion extends HookEventBase {
   type: "user.pre_schedule_deletion";
   payload: {
     user: User;
+  };
+}
+
+export interface EventUserSessionJWTPreCreate extends HookEventBase {
+  type: "user.session.jwt.pre_create";
+  payload: {
+    user: User;
+    jwt: JWT;
   };
 }
 
@@ -380,6 +406,7 @@ export type HookEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
   | EventUserPreScheduleDeletion
+  | EventUserSessionJWTPreCreate
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
