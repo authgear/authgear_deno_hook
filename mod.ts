@@ -236,6 +236,13 @@ export interface EventUserPreScheduleDeletion extends HookEventBase {
   };
 }
 
+export interface EventUserPreScheduleAnonymization extends HookEventBase {
+  type: "user.pre_schedule_anonymization";
+  payload: {
+    user: User;
+  };
+}
+
 export interface EventUserSessionJWTPreCreate extends HookEventBase {
   type: "user.session.jwt.pre_create";
   payload: {
@@ -306,6 +313,27 @@ export interface EventUserDeletionUnscheduled extends HookEventBase {
 
 export interface EventUserDeleted extends HookEventBase {
   type: "user.deleted";
+  payload: {
+    user: User;
+  };
+}
+
+export interface EventUserAnonymizationScheduled extends HookEventBase {
+  type: "user.anonymization_scheduled";
+  payload: {
+    user: User;
+  };
+}
+
+export interface EventUserAnonymizationUnscheduled extends HookEventBase {
+  type: "user.anonymization_unscheduled";
+  payload: {
+    user: User;
+  };
+}
+
+export interface EventUserAnonymized extends HookEventBase {
+  type: "user.anonymized";
   payload: {
     user: User;
   };
@@ -406,6 +434,7 @@ export type HookEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
   | EventUserPreScheduleDeletion
+  | EventUserPreScheduleAnonymization
   | EventUserSessionJWTPreCreate
   | EventUserCreated
   | EventUserProfileUpdated
@@ -416,6 +445,9 @@ export type HookEvent =
   | EventUserDeletionScheduled
   | EventUserDeletionUnscheduled
   | EventUserDeleted
+  | EventUserAnonymizationScheduled
+  | EventUserAnonymizationUnscheduled
+  | EventUserAnonymized
   | EventIdentityEmailAdded
   | EventIdentityEmailRemoved
   | EventIdentityEmailUpdated
