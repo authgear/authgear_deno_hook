@@ -430,6 +430,38 @@ export interface EventIdentityOAuthDisconnected extends HookEventBase {
   };
 }
 
+export interface EventIdentityEmailVerified extends HookEventBase {
+  type: "identity.email.verified";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
+export interface EventIdentityPhoneVerified extends HookEventBase {
+  type: "identity.phone.verified";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
+export interface EventIdentityEmailUnverified extends HookEventBase {
+  type: "identity.email.unverified";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
+export interface EventIdentityPhoneUnverified extends HookEventBase {
+  type: "identity.phone.unverified";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
 export type HookEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
@@ -458,4 +490,8 @@ export type HookEvent =
   | EventIdentityUsernameRemoved
   | EventIdentityUsernameUpdated
   | EventIdentityOAuthConnected
-  | EventIdentityOAuthDisconnected;
+  | EventIdentityOAuthDisconnected
+  | EventIdentityEmailVerified
+  | EventIdentityPhoneVerified
+  | EventIdentityEmailUnverified
+  | EventIdentityPhoneUnverified;
