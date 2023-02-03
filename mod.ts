@@ -243,8 +243,8 @@ export interface EventUserPreScheduleAnonymization extends HookEventBase {
   };
 }
 
-export interface EventUserSessionJWTPreCreate extends HookEventBase {
-  type: "user.session.jwt.pre_create";
+export interface EventOIDCJWTPreCreate extends HookEventBase {
+  type: "oidc.jwt.pre_create";
   payload: {
     user: User;
     jwt: JWT;
@@ -467,7 +467,7 @@ export type HookEvent =
   | EventUserProfilePreUpdate
   | EventUserPreScheduleDeletion
   | EventUserPreScheduleAnonymization
-  | EventUserSessionJWTPreCreate
+  | EventOIDCJWTPreCreate
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
