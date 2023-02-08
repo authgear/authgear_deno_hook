@@ -495,3 +495,8 @@ export type HookEvent =
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
   | EventIdentityPhoneUnverified;
+
+export interface CustomSMSGatewayPayload {
+  to: string;
+  body: string;
+}
