@@ -199,6 +199,8 @@ export type IdentityType =
   | "passkey"
   | "siwe";
 
+export type LoginIDType = "email" | "phone" | "username";
+
 export interface Session extends EntityBase {
   type: SessionType;
   amr?: string[];
@@ -499,4 +501,43 @@ export type HookEvent =
 export interface CustomSMSGatewayPayload {
   to: string;
   body: string;
+}
+
+// Account migration
+export interface AccountMigrationRequest {
+  migration_token: string;
+}
+
+export interface AccountMigrationResponse {
+  identities?: IdentityMigrateSpec[];
+  authenticators?: AuthenticatorMigrateSpec[];
+}
+
+type IdentityMigrateSpec = IdentityLoginIDMigrateSpec;
+
+interface IdentityLoginIDMigrateSpec {
+  type: "login_id";
+  login_id: {
+    key: string;
+    type: LoginIDType;
+    value: string;
+  };
+}
+
+type AuthenticatorMigrateSpec =
+  | AuthenticatorOOBOTPEmailMigrateSpec
+  | AuthenticatorOOBOTPSMSMigrateSpec;
+
+interface AuthenticatorOOBOTPEmailMigrateSpec {
+  type: "oob_otp_email";
+  oobotp: {
+    email: string;
+  };
+}
+
+interface AuthenticatorOOBOTPSMSMigrateSpec {
+  type: "oob_otp_sms";
+  oobotp: {
+    phone: string;
+  };
 }
