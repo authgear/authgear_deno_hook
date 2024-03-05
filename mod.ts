@@ -30,6 +30,8 @@ export type JWTPayloadMutations = Record<string, unknown>;
 export interface UserMutations {
   standard_attributes?: UserMutationsStandardAttributes;
   custom_attributes?: UserMutationsCustomAttributes;
+  groups?: string[];
+  roles?: string[];
 }
 
 export type UserMutationsCustomAttributes = Record<string, unknown>;
@@ -126,6 +128,8 @@ export interface User extends EntityBase {
   can_reauthenticate: boolean;
   standard_attributes?: UserStandardAttributes;
   custom_attributes?: UserCustomAttributes;
+  groups?: string[];
+  roles?: string[];
   x_web3?: UserWeb3Info;
 }
 
