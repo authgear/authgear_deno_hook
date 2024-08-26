@@ -253,6 +253,7 @@ export interface EventOIDCJWTPreCreate extends HookEventBase {
   type: "oidc.jwt.pre_create";
   payload: {
     user: User;
+    identities: Identity[];
     jwt: JWT;
   };
 }
