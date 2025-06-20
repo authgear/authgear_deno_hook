@@ -1,5 +1,3 @@
-export type HookResponse = HookResponseAllowed | HookResponseDisallowed;
-
 export interface HookResponseDisallowed {
   is_allowed: false;
   reason?: string;
@@ -9,9 +7,55 @@ export interface HookResponseDisallowed {
 export interface HookResponseAllowed {
   is_allowed: true;
   mutations?: Mutations;
+  constraints?: Constraints;
+  bot_protection?: BotProtectionRequirements;
 }
 
 export type Mutations = MutationsOnUser | MutationsOnJWT;
+
+export interface Constraints {
+  amr: AMRConstraint[];
+}
+
+export interface BotProtectionRequirements {
+  mode: BotProtectionRiskMode;
+}
+
+export type AMR =
+  | "pwd"
+  | "otp"
+  | "sms"
+  | "mfa"
+  | "x_biometric"
+  | "x_passkey"
+  | "x_primary_password"
+  | "x_primary_oob_otp_email"
+  | "x_primary_oob_otp_sms"
+  | "x_primary_passkey"
+  | "x_secondary_password"
+  | "x_secondary_oob_otp_email"
+  | "x_secondary_oob_otp_sms"
+  | "x_secondary_totp"
+  | "x_recovery_code"
+  | "x_device_token";
+
+export type AMRConstraint = Extract<
+  AMR,
+  | "mfa"
+  | "otp"
+  | "pwd"
+  | "sms"
+  | "x_primary_oob_otp_email"
+  | "x_primary_oob_otp_sms"
+  | "x_primary_password"
+  | "x_recovery_code"
+  | "x_secondary_oob_otp_email"
+  | "x_secondary_oob_otp_sms"
+  | "x_secondary_password"
+  | "x_secondary_totp"
+>;
+
+export type BotProtectionRiskMode = "never" | "always";
 
 export interface MutationsOnUser {
   user: UserMutations;
@@ -88,13 +132,15 @@ export interface HookEventContext {
   client_id?: string;
   // The IP address of the request that generated the event. It may be absent.
   ip_address?: string;
+  // The ISO 3166-1 alpha-2 code of the location derived from the ip address. `null` if the location cannot be determined by the ip address.
+  geo_location_code: string | null;
   // The HTTP User-Agent heaer of the request that generated the event. It may be absent.
   user_agent?: string;
 
   oauth?: OAuthContext;
 }
 
-export type TriggeredBy = "user" | "admin_api";
+export type TriggeredBy = "user" | "admin_api" | "system" | "portal";
 
 export interface OAuthContext {
   // The "state" parameter from the authentication request.
@@ -195,6 +241,13 @@ export interface Identity extends EntityBase {
   claims: Record<string, unknown>;
 }
 
+export interface Authenticator extends EntityBase {
+  user_id: string;
+  type: "password" | "passkey" | "totp" | "oob_otp_email" | "oob_otp_sms";
+  is_default: boolean;
+  kind: "primary" | "secondary";
+}
+
 export type IdentityType =
   | "login_id"
   | "oauth"
@@ -220,6 +273,53 @@ export interface Session extends EntityBase {
 
 export type SessionType = "idp" | "offline_grant";
 
+export interface AuthenticationFlow {
+  type:
+    | "signup"
+    | "promote"
+    | "login"
+    | "signup_login"
+    | "reauth"
+    | "account_recovery";
+  name: string;
+}
+
+export interface Authentication {
+  authentication:
+    | "primary_password"
+    | "primary_passkey"
+    | "primary_oob_otp_email"
+    | "primary_oob_otp_sms"
+    | "secondary_password"
+    | "secondary_totp"
+    | "secondary_oob_otp_email"
+    | "secondary_oob_otp_sms"
+    | "recovery_code"
+    | "device_token";
+  authenticator: Authenticator | null; // Non-null if authentication is primary_password, primary_passkey, primary_oob_otp_email, primary_oob_otp_sms, secondary_password, secondary_totp, secondary_oob_otp_email, or secondary_oob_otp_sms.
+}
+
+export interface Identification {
+  identification:
+    | "email"
+    | "phone"
+    | "username"
+    | "oauth"
+    | "passkey"
+    | "id_token"
+    | "ldap";
+  identity: Identity | null; // Non-null if identification is email, phone, username, oauth, passkey, or ldap.
+  id_token: string | null; // Non-null if identification is id_token
+}
+
+export interface AuthenticationContext {
+  user: User | null; // null if user is not known
+  asserted_authentications: Authentication[];
+  asserted_identifications: Identification[];
+  amr: AMR[];
+  authentication_flow: AuthenticationFlow | null; // null if the event is not triggered from authenfication flow
+}
+
 export interface EventUserPreCreate extends HookEventBase {
   type: "user.pre_create";
   payload: {
@@ -228,12 +328,20 @@ export interface EventUserPreCreate extends HookEventBase {
   };
 }
 
+export type EventUserPreCreateHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+
 export interface EventUserProfilePreUpdate extends HookEventBase {
   type: "user.profile.pre_update";
   payload: {
     user: User;
   };
 }
+
+export type EventUserProfilePreUpdateHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
 
 export interface EventUserPreScheduleDeletion extends HookEventBase {
   type: "user.pre_schedule_deletion";
@@ -242,12 +350,20 @@ export interface EventUserPreScheduleDeletion extends HookEventBase {
   };
 }
 
+export type EventUserPreScheduleDeletionHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+
 export interface EventUserPreScheduleAnonymization extends HookEventBase {
   type: "user.pre_schedule_anonymization";
   payload: {
     user: User;
   };
 }
+
+export type EventUserPreScheduleAnonymizationHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
 
 export interface EventOIDCJWTPreCreate extends HookEventBase {
   type: "oidc.jwt.pre_create";
@@ -257,6 +373,44 @@ export interface EventOIDCJWTPreCreate extends HookEventBase {
     jwt: JWT;
   };
 }
+
+export type EventOIDCJWTPreCreateHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+
+export interface EventAuthenticationPreInitialize extends HookEventBase {
+  type: "authentication.pre_initialize";
+  payload: {
+    authentication_context: AuthenticationContext;
+  };
+}
+
+export type EventAuthenticationPreInitializeHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "bot_protection" | "constraints">;
+
+export interface EventAuthenticationPostIdentified extends HookEventBase {
+  type: "authentication.post_identified";
+  payload: {
+    authentication_context: AuthenticationContext;
+    identification: Identification;
+  };
+}
+
+export type EventAuthenticationPostIdentifiedHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "bot_protection" | "constraints">;
+
+export interface EventAuthenticationPreAuthenticated extends HookEventBase {
+  type: "authentication.pre_authenticated";
+  payload: {
+    authentication_context: AuthenticationContext;
+  };
+}
+
+export type EventAuthenticationPreAuthenticatedHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "constraints">;
 
 export interface EventUserCreated extends HookEventBase {
   type: "user.created";
