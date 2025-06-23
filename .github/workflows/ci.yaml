@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - '*'
+    - '!gh-pages'
+    tags:
+    - '*'
+  pull_request:
+    branches:
+    - '*'
+    - '!gh-pages'
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    # setup-deno@v1 uses deno v1 by default.
+    # setup-deno@v2 uses deno v2 by default.
+    # So even there is a possible upgrade, we do not upgrade.
+    - uses: denoland/setup-deno@v1
+      with:
+        deno-version: "1.41.3"
+    - run: make test
+      if: ${{ !cancelled() }}
+    - run: make fmt
+      if: ${{ !cancelled() }}
