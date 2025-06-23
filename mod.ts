@@ -1,3 +1,5 @@
+export type HookResponse = HookResponseAllowed | HookResponseDisallowed;
+
 export interface HookResponseDisallowed {
   is_allowed: false;
   reason?: string;
