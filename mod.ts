@@ -657,7 +657,10 @@ export type HookEvent =
   | EventIdentityEmailVerified
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
-  | EventIdentityPhoneUnverified;
+  | EventIdentityPhoneUnverified
+  | EventAuthenticationPreInitialize
+  | EventAuthenticationPostIdentified
+  | EventAuthenticationPreAuthenticated;
 
 export interface CustomSMSGatewayPayload {
   to: string;
