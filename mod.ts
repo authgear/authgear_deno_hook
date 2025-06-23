@@ -625,12 +625,17 @@ export interface EventIdentityPhoneUnverified extends HookEventBase {
   };
 }
 
-export type HookEvent =
+export type HookBlockingEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
   | EventUserPreScheduleDeletion
   | EventUserPreScheduleAnonymization
   | EventOIDCJWTPreCreate
+  | EventAuthenticationPreInitialize
+  | EventAuthenticationPostIdentified
+  | EventAuthenticationPreAuthenticated;
+
+export type HookNonBlockingEvent =
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
@@ -657,10 +662,9 @@ export type HookEvent =
   | EventIdentityEmailVerified
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
-  | EventIdentityPhoneUnverified
-  | EventAuthenticationPreInitialize
-  | EventAuthenticationPostIdentified
-  | EventAuthenticationPreAuthenticated;
+  | EventIdentityPhoneUnverified;
+
+export type HookEvent = HookBlockingEvent | HookNonBlockingEvent;
 
 export interface CustomSMSGatewayPayload {
   to: string;

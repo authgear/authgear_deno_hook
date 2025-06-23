@@ -15,11 +15,11 @@ import {
   EventUserPreScheduleDeletionHookResponse,
   EventUserProfilePreUpdate,
   EventUserProfilePreUpdateHookResponse,
-  HookEvent,
+  HookBlockingEvent,
   HookResponse,
 } from "../mod.ts";
 
-async function hook(e: HookEvent): Promise<HookResponse> {
+async function hook(e: HookBlockingEvent): Promise<HookResponse> {
   switch (e.type) {
     case "authentication.pre_initialize":
       return authentication_pre_initialize(e);
