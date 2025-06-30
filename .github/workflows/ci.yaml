@@ -25,5 +25,5 @@ jobs:
           deno-version: "1.41.3"
       - run: make test
         if: ${{ !cancelled() }}
-      - run: make fmt
+      - run: make check-tidy
         if: ${{ !cancelled() }}

@@ -4,4 +4,8 @@ test:
 
 .PHONY: fmt
 fmt:
+	deno fmt
+
+.PHONY: check-tidy
+check-tidy:
 	deno fmt --check
