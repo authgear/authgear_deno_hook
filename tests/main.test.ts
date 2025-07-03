@@ -55,6 +55,14 @@ async function authentication_pre_initialize(
     constraints: {
       amr: ["mfa", "pwd", "sms"],
     },
+    rate_limits: {
+      "authentication.account_enumeration": {
+        weight: 1,
+      },
+      "authentication.general": {
+        weight: 1,
+      },
+    },
   };
 }
 
@@ -69,6 +77,14 @@ async function authentication_post_identified(
     constraints: {
       amr: ["x_primary_password", "x_secondary_totp"],
     },
+    rate_limits: {
+      "authentication.account_enumeration": {
+        weight: 1,
+      },
+      "authentication.general": {
+        weight: 1,
+      },
+    },
   };
 }
 
@@ -79,6 +95,14 @@ async function authentication_pre_authenticated(
     is_allowed: true,
     constraints: {
       amr: ["x_recovery_code", "x_secondary_oob_otp_email"],
+    },
+    rate_limits: {
+      "authentication.account_enumeration": {
+        weight: 1,
+      },
+      "authentication.general": {
+        weight: 1,
+      },
     },
   };
 }

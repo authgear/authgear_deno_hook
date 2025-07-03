@@ -11,6 +11,7 @@ export interface HookResponseAllowed {
   mutations?: Mutations;
   constraints?: Constraints;
   bot_protection?: BotProtectionRequirements;
+  rate_limits?: RateLimits;
 }
 
 export type Mutations = MutationsOnUser | MutationsOnJWT;
@@ -21,6 +22,15 @@ export interface Constraints {
 
 export interface BotProtectionRequirements {
   mode: BotProtectionRiskMode;
+}
+
+export interface RateLimits {
+  ["authentication.general"]?: RateLimitRequirements;
+  ["authentication.account_enumeration"]?: RateLimitRequirements;
+}
+
+export interface RateLimitRequirements {
+  weight: number;
 }
 
 export type AMR =
@@ -389,7 +399,10 @@ export interface EventAuthenticationPreInitialize extends HookEventBase {
 
 export type EventAuthenticationPreInitializeHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "bot_protection" | "constraints">;
+  | Pick<
+    HookResponseAllowed,
+    "is_allowed" | "bot_protection" | "constraints" | "rate_limits"
+  >;
 
 export interface EventAuthenticationPostIdentified extends HookEventBase {
   type: "authentication.post_identified";
@@ -401,7 +414,10 @@ export interface EventAuthenticationPostIdentified extends HookEventBase {
 
 export type EventAuthenticationPostIdentifiedHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "bot_protection" | "constraints">;
+  | Pick<
+    HookResponseAllowed,
+    "is_allowed" | "bot_protection" | "constraints" | "rate_limits"
+  >;
 
 export interface EventAuthenticationPreAuthenticated extends HookEventBase {
   type: "authentication.pre_authenticated";
@@ -412,7 +428,7 @@ export interface EventAuthenticationPreAuthenticated extends HookEventBase {
 
 export type EventAuthenticationPreAuthenticatedHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "constraints">;
+  | Pick<HookResponseAllowed, "is_allowed" | "constraints" | "rate_limits">;
 
 export interface EventUserCreated extends HookEventBase {
   type: "user.created";
