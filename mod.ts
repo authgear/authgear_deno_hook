@@ -25,8 +25,8 @@ export interface BotProtectionRequirements {
 }
 
 export interface RateLimits {
-  "authentication.general"?: RateLimitRequirements;
-  "authentication.account_enumeration"?: RateLimitRequirements;
+  ["authentication.general"]?: RateLimitRequirements;
+  ["authentication.account_enumeration"]?: RateLimitRequirements;
 }
 
 export interface RateLimitRequirements {
