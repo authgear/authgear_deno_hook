@@ -390,6 +390,19 @@ export type EventOIDCJWTPreCreateHookResponse =
   | HookResponseDisallowed
   | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
 
+export interface EventOIDCIDTokenPreCreate extends HookEventBase {
+  type: "oidc.id_token.pre_create";
+  payload: {
+    user: User;
+    identities: Identity[];
+    jwt: JWT;
+  };
+}
+
+export type EventOIDCIDTokenPreCreateHookResponse =
+  | HookResponseDisallowed
+  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+
 export interface EventAuthenticationPreInitialize extends HookEventBase {
   type: "authentication.pre_initialize";
   payload: {
@@ -647,6 +660,7 @@ export type HookBlockingEvent =
   | EventUserPreScheduleDeletion
   | EventUserPreScheduleAnonymization
   | EventOIDCJWTPreCreate
+  | EventOIDCIDTokenPreCreate
   | EventAuthenticationPreInitialize
   | EventAuthenticationPostIdentified
   | EventAuthenticationPreAuthenticated;

@@ -5,6 +5,8 @@ import {
   EventAuthenticationPreAuthenticatedHookResponse,
   EventAuthenticationPreInitialize,
   EventAuthenticationPreInitializeHookResponse,
+  EventOIDCIDTokenPreCreate,
+  EventOIDCIDTokenPreCreateHookResponse,
   EventOIDCJWTPreCreate,
   EventOIDCJWTPreCreateHookResponse,
   EventUserPreCreate,
@@ -37,6 +39,8 @@ async function hook(e: HookBlockingEvent): Promise<HookResponse> {
       return user_pre_schedule_anonymization(e);
     case "oidc.jwt.pre_create":
       return oidc_jwt_pre_create(e);
+    case "oidc.id_token.pre_create":
+      return oidc_id_token_pre_create(e);
     default:
       return {
         is_allowed: false,
@@ -214,6 +218,36 @@ async function user_pre_schedule_anonymization(
 async function oidc_jwt_pre_create(
   _e: EventOIDCJWTPreCreate,
 ): Promise<EventOIDCJWTPreCreateHookResponse> {
+  return {
+    is_allowed: true,
+    mutations: {
+      jwt: {
+        payload: {
+          custom_claim: "custom_value",
+          department: "Engineering",
+          permissions: ["read", "write", "admin"],
+          metadata: {
+            created_at: "2025-06-23T10:30:00Z",
+            version: "1.0",
+            source: "authgear_hook",
+          },
+          nested_object: {
+            level1: {
+              level2: {
+                deeply_nested: "value",
+                array_data: [1, 2, 3, "mixed", true],
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+async function oidc_id_token_pre_create(
+  _e: EventOIDCIDTokenPreCreate,
+): Promise<EventOIDCIDTokenPreCreateHookResponse> {
   return {
     is_allowed: true,
     mutations: {
