@@ -146,7 +146,7 @@ export interface HookEventContext {
   ip_address?: string;
   // The ISO 3166-1 alpha-2 code of the location derived from the ip address. `null` if the location cannot be determined by the ip address.
   geo_location_code: string | null;
-  // The HTTP User-Agent heaer of the request that generated the event. It may be absent.
+  // The HTTP User-Agent header of the request that generated the event. It may be absent.
   user_agent?: string;
 
   oauth?: OAuthContext;
@@ -329,7 +329,7 @@ export interface AuthenticationContext {
   asserted_authentications: Authentication[];
   asserted_identifications: Identification[];
   amr: AMR[];
-  authentication_flow: AuthenticationFlow | null; // null if the event is not triggered from authenfication flow
+  authentication_flow: AuthenticationFlow | null; // null if the event is not triggered from authentication flow
 }
 
 export interface EventUserPreCreate extends HookEventBase {
