@@ -251,7 +251,7 @@ async function oidc_id_token_pre_create(
   return {
     is_allowed: true,
     mutations: {
-      jwt: {
+      id_token: {
         payload: {
           custom_claim: "custom_value",
           department: "Engineering",

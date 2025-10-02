@@ -1,4 +1,6 @@
-export type HookResponse = HookResponseAllowed | HookResponseDisallowed;
+export type HookResponse =
+  | HookResponseAllowed<unknown>
+  | HookResponseDisallowed;
 
 export interface HookResponseDisallowed {
   is_allowed: false;
@@ -6,15 +8,13 @@ export interface HookResponseDisallowed {
   title?: string;
 }
 
-export interface HookResponseAllowed {
+export interface HookResponseAllowed<M> {
   is_allowed: true;
-  mutations?: Mutations;
+  mutations?: M;
   constraints?: Constraints;
   bot_protection?: BotProtectionRequirements;
   rate_limits?: RateLimits;
 }
-
-export type Mutations = MutationsOnUser | MutationsOnJWT;
 
 export interface Constraints {
   amr: AMRConstraint[];
@@ -75,6 +75,10 @@ export interface MutationsOnUser {
 
 export interface MutationsOnJWT {
   jwt: JWTMutations;
+}
+
+export interface MutationsOnIDToken {
+  id_token: JWTMutations;
 }
 
 export interface JWTMutations {
@@ -342,7 +346,7 @@ export interface EventUserPreCreate extends HookEventBase {
 
 export type EventUserPreCreateHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnUser>, "is_allowed" | "mutations">;
 
 export interface EventUserProfilePreUpdate extends HookEventBase {
   type: "user.profile.pre_update";
@@ -353,7 +357,7 @@ export interface EventUserProfilePreUpdate extends HookEventBase {
 
 export type EventUserProfilePreUpdateHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnUser>, "is_allowed" | "mutations">;
 
 export interface EventUserPreScheduleDeletion extends HookEventBase {
   type: "user.pre_schedule_deletion";
@@ -364,7 +368,7 @@ export interface EventUserPreScheduleDeletion extends HookEventBase {
 
 export type EventUserPreScheduleDeletionHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnUser>, "is_allowed" | "mutations">;
 
 export interface EventUserPreScheduleAnonymization extends HookEventBase {
   type: "user.pre_schedule_anonymization";
@@ -375,7 +379,7 @@ export interface EventUserPreScheduleAnonymization extends HookEventBase {
 
 export type EventUserPreScheduleAnonymizationHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnUser>, "is_allowed" | "mutations">;
 
 export interface EventOIDCJWTPreCreate extends HookEventBase {
   type: "oidc.jwt.pre_create";
@@ -388,20 +392,20 @@ export interface EventOIDCJWTPreCreate extends HookEventBase {
 
 export type EventOIDCJWTPreCreateHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnJWT>, "is_allowed" | "mutations">;
 
 export interface EventOIDCIDTokenPreCreate extends HookEventBase {
   type: "oidc.id_token.pre_create";
   payload: {
     user: User;
     identities: Identity[];
-    jwt: JWT;
+    id_token: JWT;
   };
 }
 
 export type EventOIDCIDTokenPreCreateHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "mutations">;
+  | Pick<HookResponseAllowed<MutationsOnIDToken>, "is_allowed" | "mutations">;
 
 export interface EventAuthenticationPreInitialize extends HookEventBase {
   type: "authentication.pre_initialize";
@@ -413,7 +417,7 @@ export interface EventAuthenticationPreInitialize extends HookEventBase {
 export type EventAuthenticationPreInitializeHookResponse =
   | HookResponseDisallowed
   | Pick<
-    HookResponseAllowed,
+    HookResponseAllowed<never>,
     "is_allowed" | "bot_protection" | "constraints" | "rate_limits"
   >;
 
@@ -428,7 +432,7 @@ export interface EventAuthenticationPostIdentified extends HookEventBase {
 export type EventAuthenticationPostIdentifiedHookResponse =
   | HookResponseDisallowed
   | Pick<
-    HookResponseAllowed,
+    HookResponseAllowed<never>,
     "is_allowed" | "bot_protection" | "constraints" | "rate_limits"
   >;
 
@@ -441,7 +445,10 @@ export interface EventAuthenticationPreAuthenticated extends HookEventBase {
 
 export type EventAuthenticationPreAuthenticatedHookResponse =
   | HookResponseDisallowed
-  | Pick<HookResponseAllowed, "is_allowed" | "constraints" | "rate_limits">;
+  | Pick<
+    HookResponseAllowed<never>,
+    "is_allowed" | "constraints" | "rate_limits"
+  >;
 
 export interface EventUserCreated extends HookEventBase {
   type: "user.created";
