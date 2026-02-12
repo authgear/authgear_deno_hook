@@ -715,7 +715,7 @@ export interface CustomSMSGatewayResponse {
     | "rate_limited" // Return this code if some rate limit is reached and the user should retry the request
     | "authentication_failed" // Return this code if some authentication is failed, and the developer should check the current configurations.
     | "delivery_rejected"; // Return this code if the sms delivery service rejected the request for any reason the user cannot fix by retrying.
-  provider_error_code?: string; // Error code that could appear on portal to assist debugging. For example, you may put the error code returned by twilio here.
+  description?: string; // Description that could appear on portal to assist debugging. For example, you may put the error code returned by twilio here.
 }
 
 // Account migration
