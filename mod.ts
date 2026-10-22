@@ -450,6 +450,53 @@ export type EventAuthenticationPreAuthenticatedHookResponse =
     "is_allowed" | "constraints" | "rate_limits"
   >;
 
+export interface FormField {
+  user_profile: {
+    // The pointer of the user attribute.
+    pointer: string;
+  };
+}
+
+export interface SubmittedForm {
+  // Absent when the form has no name.
+  name?: string;
+  fields: SubmittedFormField[];
+}
+
+export interface SubmittedFormField {
+  field: FormField;
+  // null if the field is empty.
+  value: unknown;
+}
+
+export interface EventAuthenticationFormPostSubmitted extends HookEventBase {
+  type: "authentication.form.post_submitted";
+  payload: {
+    authentication_context: AuthenticationContext;
+    // The user with every attribute submitted so far in the flow applied.
+    user: User;
+    form: SubmittedForm;
+  };
+}
+
+export interface InvalidFormFieldReason {
+  type: "invalid_form_field";
+  field: FormField;
+  // The message shown to the end-user.
+  message: string;
+}
+
+export type FormHookResponseReason = InvalidFormFieldReason;
+
+export interface EventAuthenticationFormPostSubmittedHookResponseDisallowed
+  extends HookResponseDisallowed {
+  reasons?: FormHookResponseReason[];
+}
+
+export type EventAuthenticationFormPostSubmittedHookResponse =
+  | EventAuthenticationFormPostSubmittedHookResponseDisallowed
+  | Pick<HookResponseAllowed<never>, "is_allowed">;
+
 export interface EventUserCreated extends HookEventBase {
   type: "user.created";
   payload: {
@@ -670,7 +717,8 @@ export type HookBlockingEvent =
   | EventOIDCIDTokenPreCreate
   | EventAuthenticationPreInitialize
   | EventAuthenticationPostIdentified
-  | EventAuthenticationPreAuthenticated;
+  | EventAuthenticationPreAuthenticated
+  | EventAuthenticationFormPostSubmitted;
 
 export type HookNonBlockingEvent =
   | EventUserCreated
