@@ -732,6 +732,35 @@ export interface EventIdentityPhoneUnverified extends HookEventBase {
   };
 }
 
+export type UsageName =
+  | "user_export"
+  | "user_import"
+  | "email"
+  | "whatsapp"
+  | "sms"
+  | "oauth_client_dcr"
+  | "oauth_client_cimd";
+
+export interface UsageAlert {
+  name: UsageName;
+  action: "alert" | "block";
+  // It is an empty string for oauth_client_dcr and oauth_client_cimd, which have no period.
+  period: "day" | "month" | "";
+  // The configured quota that was triggered.
+  quota: number;
+  // The measured usage value when the event is generated. It is the count in the current period, or the current number of clients for oauth_client_dcr and oauth_client_cimd.
+  current_value: number;
+  // The plan name of the app when the event is generated. It is an empty string if unavailable.
+  plan_name: string;
+}
+
+export interface EventUsageAlertTriggered extends HookEventBase {
+  type: "usage.alert.triggered";
+  payload: {
+    usage: UsageAlert;
+  };
+}
+
 export type HookBlockingEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
@@ -774,7 +803,8 @@ export type HookNonBlockingEvent =
   | EventIdentityEmailVerified
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
-  | EventIdentityPhoneUnverified;
+  | EventIdentityPhoneUnverified
+  | EventUsageAlertTriggered;
 
 export type HookEvent = HookBlockingEvent | HookNonBlockingEvent;
 
