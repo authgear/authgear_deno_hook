@@ -520,6 +520,14 @@ export interface EventUserAuthenticated extends HookEventBase {
   };
 }
 
+export interface EventUserReauthenticated extends HookEventBase {
+  type: "user.reauthenticated";
+  payload: {
+    user: User;
+    session: Session;
+  };
+}
+
 export interface EventUserAnonymousPromoted extends HookEventBase {
   type: "user.anonymous.promoted";
   payload: {
@@ -724,6 +732,7 @@ export type HookNonBlockingEvent =
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
+  | EventUserReauthenticated
   | EventUserAnonymousPromoted
   | EventUserDisabled
   | EventUserReenabled
