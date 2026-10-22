@@ -684,6 +684,14 @@ export interface EventIdentityOAuthDisconnected extends HookEventBase {
   };
 }
 
+export interface EventIdentityBiometricEnabled extends HookEventBase {
+  type: "identity.biometric.enabled";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
 export interface EventIdentityEmailVerified extends HookEventBase {
   type: "identity.email.verified";
   payload: {
@@ -753,6 +761,7 @@ export type HookNonBlockingEvent =
   | EventIdentityUsernameUpdated
   | EventIdentityOAuthConnected
   | EventIdentityOAuthDisconnected
+  | EventIdentityBiometricEnabled
   | EventIdentityEmailVerified
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
