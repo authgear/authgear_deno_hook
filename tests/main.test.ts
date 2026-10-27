@@ -1,4 +1,6 @@
 import {
+  EventAuthenticationFormPostSubmitted,
+  EventAuthenticationFormPostSubmittedHookResponse,
   EventAuthenticationPostIdentified,
   EventAuthenticationPostIdentifiedHookResponse,
   EventAuthenticationPreAuthenticated,
@@ -29,6 +31,8 @@ async function hook(e: HookBlockingEvent): Promise<HookResponse> {
       return authentication_post_identified(e);
     case "authentication.pre_authenticated":
       return authentication_pre_authenticated(e);
+    case "authentication.form.post_submitted":
+      return authentication_form_post_submitted(e);
     case "user.pre_create":
       return user_pre_create(e);
     case "user.profile.pre_update":
@@ -89,6 +93,22 @@ async function authentication_post_identified(
         weight: 1,
       },
     },
+  };
+}
+
+async function authentication_form_post_submitted(
+  _e: EventAuthenticationFormPostSubmitted,
+): Promise<EventAuthenticationFormPostSubmittedHookResponse> {
+  return {
+    is_allowed: false,
+    title: "Employee not found",
+    reasons: [
+      {
+        type: "invalid_form_field",
+        field: { user_profile: { pointer: "/x_employee_id" } },
+        message: "This employee ID does not exist.",
+      },
+    ],
   };
 }
 

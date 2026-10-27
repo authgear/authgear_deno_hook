@@ -136,8 +136,10 @@ export interface HookEventBase {
 export interface HookEventContext {
   // Unix timestamp of when the event was generated.
   timestamp: number;
-  // The ID of the user associated with the event. It may be absent.
-  user_id?: string;
+  // The app ID. It may be absent.
+  app_id?: string;
+  // The ID of the user associated with the event. It may be absent or null.
+  user_id?: string | null;
   // Who triggered the event.
   triggered_by: TriggeredBy;
   // The user preferred languages as seen by Authgear.
@@ -152,15 +154,26 @@ export interface HookEventContext {
   geo_location_code: string | null;
   // The HTTP User-Agent header of the request that generated the event. It may be absent.
   user_agent?: string;
+  // The trace ID for log tracing. It may be absent.
+  tracking_id?: string;
+  // Information for audit purposes, such as `http_url`.
+  audit_context?: Record<string, unknown> | null;
 
   oauth?: OAuthContext;
 }
 
-export type TriggeredBy = "user" | "admin_api" | "system" | "portal";
+export type TriggeredBy =
+  | "user"
+  | "admin_api"
+  | "system"
+  | "portal"
+  | "site_admin";
 
 export interface OAuthContext {
   // The "state" parameter from the authentication request.
   state?: string;
+  // The "x_state" parameter from the authentication request.
+  x_state?: string;
 }
 
 export interface EntityBase {
@@ -187,17 +200,30 @@ export interface User extends EntityBase {
   is_deactivated: boolean;
   // RFC3339
   delete_at?: string;
+  delete_reason?: string;
+  is_anonymized: boolean;
+  // RFC3339
+  anonymize_at?: string;
+  // RFC3339
+  temporarily_disabled_from?: string;
+  // RFC3339
+  temporarily_disabled_until?: string;
+  // RFC3339
+  account_valid_from?: string;
+  // RFC3339
+  account_valid_until?: string;
   can_reauthenticate: boolean;
   standard_attributes?: UserStandardAttributes;
   custom_attributes?: UserCustomAttributes;
   groups?: string[];
   roles?: string[];
+  // RFC3339
+  mfa_grace_period_end_at?: string;
   x_web3?: UserWeb3Info;
 }
 
 export interface UserStandardAttributes
   extends UserMutationsStandardAttributes {
-  sub: string;
   email_verified?: boolean;
   phone_number_verified?: boolean;
   // Unix timestamp
@@ -253,6 +279,7 @@ export interface Web3BlockIdentifier {
 }
 
 export interface Identity extends EntityBase {
+  user_id: string;
   type: IdentityType;
   claims: Record<string, unknown>;
 }
@@ -270,7 +297,8 @@ export type IdentityType =
   | "anonymous"
   | "biometric"
   | "passkey"
-  | "siwe";
+  | "siwe"
+  | "ldap";
 
 export type LoginIDType = "email" | "phone" | "username";
 
@@ -283,8 +311,11 @@ export interface Session extends EntityBase {
   lastAccessedByIP: string;
   lastAccessedByIPCountryCode: string;
   lastAccessedByIPEnglishCountryName: string;
+  // null if the session is not associated with a client.
+  clientID: string | null;
   displayName: string;
-  applicationName: string;
+  applicationName?: string;
+  userAgent?: string;
 }
 
 export type SessionType = "idp" | "offline_grant";
@@ -297,7 +328,7 @@ export interface AuthenticationFlow {
     | "signup_login"
     | "reauth"
     | "account_recovery";
-  name: string;
+  name?: string;
 }
 
 export interface Authentication {
@@ -323,8 +354,9 @@ export interface Identification {
     | "oauth"
     | "passkey"
     | "id_token"
-    | "ldap";
-  identity: Identity | null; // Non-null if identification is email, phone, username, oauth, passkey, or ldap.
+    | "ldap"
+    | "select_account";
+  identity: Identity | null; // Non-null if identification is email, phone, username, oauth, passkey, or ldap. Null if identification is select_account.
   id_token: string | null; // Non-null if identification is id_token
 }
 
@@ -450,6 +482,53 @@ export type EventAuthenticationPreAuthenticatedHookResponse =
     "is_allowed" | "constraints" | "rate_limits"
   >;
 
+export interface FormField {
+  user_profile: {
+    // The pointer of the user attribute.
+    pointer: string;
+  };
+}
+
+export interface SubmittedForm {
+  // Absent when the form has no name.
+  name?: string;
+  fields: SubmittedFormField[];
+}
+
+export interface SubmittedFormField {
+  field: FormField;
+  // null if the field is empty.
+  value: unknown;
+}
+
+export interface EventAuthenticationFormPostSubmitted extends HookEventBase {
+  type: "authentication.form.post_submitted";
+  payload: {
+    authentication_context: AuthenticationContext;
+    // The user with every attribute submitted so far in the flow applied.
+    user: User;
+    form: SubmittedForm;
+  };
+}
+
+export interface InvalidFormFieldReason {
+  type: "invalid_form_field";
+  field: FormField;
+  // The message shown to the end-user.
+  message: string;
+}
+
+export type FormHookResponseReason = InvalidFormFieldReason;
+
+export interface EventAuthenticationFormPostSubmittedHookResponseDisallowed
+  extends HookResponseDisallowed {
+  reasons?: FormHookResponseReason[];
+}
+
+export type EventAuthenticationFormPostSubmittedHookResponse =
+  | EventAuthenticationFormPostSubmittedHookResponseDisallowed
+  | Pick<HookResponseAllowed<never>, "is_allowed">;
+
 export interface EventUserCreated extends HookEventBase {
   type: "user.created";
   payload: {
@@ -469,6 +548,17 @@ export interface EventUserAuthenticated extends HookEventBase {
   type: "user.authenticated";
   payload: {
     user: User;
+    // null if the authentication did not create a session, such as a SAML login without an existing session.
+    session: Session | null;
+    // The session the user continues from, if any.
+    continue_from_session?: Session;
+  };
+}
+
+export interface EventUserReauthenticated extends HookEventBase {
+  type: "user.reauthenticated";
+  payload: {
+    user: User;
     session: Session;
   };
 }
@@ -486,6 +576,10 @@ export interface EventUserDisabled extends HookEventBase {
   type: "user.disabled";
   payload: {
     user: User;
+    // RFC3339
+    temporarily_disabled_from?: string;
+    // RFC3339
+    temporarily_disabled_until?: string;
   };
 }
 
@@ -514,6 +608,8 @@ export interface EventUserDeleted extends HookEventBase {
   type: "user.deleted";
   payload: {
     user: User;
+    // The reason of the deletion, if any.
+    reason?: string;
   };
 }
 
@@ -629,6 +725,22 @@ export interface EventIdentityOAuthDisconnected extends HookEventBase {
   };
 }
 
+export interface EventIdentityBiometricEnabled extends HookEventBase {
+  type: "identity.biometric.enabled";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
+export interface EventIdentityBiometricDisabled extends HookEventBase {
+  type: "identity.biometric.disabled";
+  payload: {
+    user: User;
+    identity: Identity;
+  };
+}
+
 export interface EventIdentityEmailVerified extends HookEventBase {
   type: "identity.email.verified";
   payload: {
@@ -661,6 +773,35 @@ export interface EventIdentityPhoneUnverified extends HookEventBase {
   };
 }
 
+export type UsageName =
+  | "user_export"
+  | "user_import"
+  | "email"
+  | "whatsapp"
+  | "sms"
+  | "oauth_client_dcr"
+  | "oauth_client_cimd";
+
+export interface UsageAlert {
+  name: UsageName;
+  action: "alert" | "block";
+  // It is an empty string for oauth_client_dcr and oauth_client_cimd, which have no period.
+  period: "day" | "month" | "";
+  // The configured quota that was triggered.
+  quota: number;
+  // The measured usage value when the event is generated. It is the count in the current period, or the current number of clients for oauth_client_dcr and oauth_client_cimd.
+  current_value: number;
+  // The plan name of the app when the event is generated. It is an empty string if unavailable.
+  plan_name: string;
+}
+
+export interface EventUsageAlertTriggered extends HookEventBase {
+  type: "usage.alert.triggered";
+  payload: {
+    usage: UsageAlert;
+  };
+}
+
 export type HookBlockingEvent =
   | EventUserPreCreate
   | EventUserProfilePreUpdate
@@ -670,12 +811,14 @@ export type HookBlockingEvent =
   | EventOIDCIDTokenPreCreate
   | EventAuthenticationPreInitialize
   | EventAuthenticationPostIdentified
-  | EventAuthenticationPreAuthenticated;
+  | EventAuthenticationPreAuthenticated
+  | EventAuthenticationFormPostSubmitted;
 
 export type HookNonBlockingEvent =
   | EventUserCreated
   | EventUserProfileUpdated
   | EventUserAuthenticated
+  | EventUserReauthenticated
   | EventUserAnonymousPromoted
   | EventUserDisabled
   | EventUserReenabled
@@ -696,16 +839,50 @@ export type HookNonBlockingEvent =
   | EventIdentityUsernameUpdated
   | EventIdentityOAuthConnected
   | EventIdentityOAuthDisconnected
+  | EventIdentityBiometricEnabled
+  | EventIdentityBiometricDisabled
   | EventIdentityEmailVerified
   | EventIdentityPhoneVerified
   | EventIdentityEmailUnverified
-  | EventIdentityPhoneUnverified;
+  | EventIdentityPhoneUnverified
+  | EventUsageAlertTriggered;
 
 export type HookEvent = HookBlockingEvent | HookNonBlockingEvent;
 
 export interface CustomSMSGatewayPayload {
+  // The recipient phone number in E.164 format.
   to: string;
+  // The fully formatted and localized message body.
   body: string;
+  // IETF BCP 47 language tag describing the language of body.
+  language_tag: string;
+  // The Authgear project ID.
+  app_id: string;
+  template_name:
+    | "authenticate_primary_oob_sms.txt"
+    | "authenticate_secondary_oob_sms.txt"
+    | "forgot_password_oob_sms.txt"
+    | "forgot_password_sms.txt"
+    | "setup_primary_oob_sms.txt"
+    | "setup_secondary_oob_sms.txt"
+    | "verification_sms.txt";
+  template_variables: {
+    // Present unless template_name is "forgot_password_sms.txt".
+    code?: string;
+    // Present when template_name is "forgot_password_sms.txt".
+    link?: string;
+    // The following are present only when they are available.
+    app_name?: string;
+    client_id?: string;
+    email?: string;
+    has_password?: boolean;
+    host?: string;
+    password?: string;
+    phone?: string;
+    state?: string;
+    ui_locales?: string;
+    url?: string;
+  };
 }
 
 export interface CustomSMSGatewayResponse {
@@ -714,8 +891,12 @@ export interface CustomSMSGatewayResponse {
     | "invalid_phone_number" // Return this code if the phone number is invalid
     | "rate_limited" // Return this code if some rate limit is reached and the user should retry the request
     | "authentication_failed" // Return this code if some authentication is failed, and the developer should check the current configurations.
-    | "delivery_rejected"; // Return this code if the sms delivery service rejected the request for any reason the user cannot fix by retrying.
+    | "unsupported_request" // Return this code if the request is unsupported, e.g. attempting to send a login link when only 6-digit codes are supported.
+    | "delivery_rejected" // Return this code if the sms delivery service rejected the request for any reason the user cannot fix by retrying.
+    | "timeout" // Return this code if the sms delivery service timed out.
+    | "unknown_error"; // Return this code if some unknown error occurred when sending the sms.
   description?: string; // Description that could appear on portal to assist debugging. For example, you may put the error code returned by twilio here.
+  info?: Record<string, unknown>; // An optional object for error logging purpose only. Authgear sends all details in it to the error logging service.
 }
 
 // Account migration
